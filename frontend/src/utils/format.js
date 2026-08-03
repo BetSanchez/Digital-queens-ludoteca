@@ -10,10 +10,15 @@ const FORMATO_CORTO = new Intl.DateTimeFormat('es-MX', {
   year: 'numeric',
 });
 
-/** La API entrega "YYYY-MM-DD HH:MM:SS" en UTC. */
+/** La API entrega la fecha en ISO 8601 ("2026-01-14T10:20:00+00:00"). */
 function parseFecha(valor) {
   if (!valor) return null;
-  const fecha = new Date(valor.replace(' ', 'T') + (valor.includes('Z') ? '' : 'Z'));
+
+  const texto = String(valor).replace(' ', 'T');
+  // Si el texto no trae zona horaria, se interpreta como UTC.
+  const tieneZona = /(?:Z|[+-]\d{2}:?\d{2})$/i.test(texto);
+
+  const fecha = new Date(tieneZona ? texto : `${texto}Z`);
   return Number.isNaN(fecha.getTime()) ? null : fecha;
 }
 
@@ -36,12 +41,9 @@ export function iniciales(nombre = '') {
     .join('');
 }
 
-/** Devuelve la URL absoluta de un archivo servido por el backend. */
+/** Los PDFs e imágenes viven en Supabase Storage con una URL pública absoluta. */
 export function urlArchivo(ruta) {
-  if (!ruta) return null;
-  if (/^https?:\/\//i.test(ruta)) return ruta;
-  const base = import.meta.env.VITE_FILES_URL ?? '';
-  return `${base}${ruta}`;
+  return ruta || null;
 }
 
 export function pluralizar(cantidad, singular, plural) {

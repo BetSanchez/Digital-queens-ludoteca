@@ -15,29 +15,38 @@ const Statistics = lazy(() => import('./pages/Statistics'));
 
 export default function App() {
   const [mostrarPortada, setMostrarPortada] = useState(true);
+  const [mostrarApp, setMostrarApp] = useState(false);
 
   return (
     <>
-      {mostrarPortada && <SplashScreen onFinish={() => setMostrarPortada(false)} />}
+      {mostrarPortada && (
+        <SplashScreen
+          onExitStart={() => setMostrarApp(true)}
+          onFinish={() => setMostrarPortada(false)}
+        />
+      )}
 
-      <Routes>
-        <Route element={<Layout />}>
-          <Route index element={<Home />} />
-          <Route path="recursos" element={<Explore />} />
-          <Route path="recursos/:id" element={<ResourceDetail />} />
-          <Route path="recursos/:id/editar" element={<EditResource />} />
-          <Route path="agregar" element={<AddResource />} />
-          <Route
-            path="estadisticas"
-            element={
-              <Suspense fallback={<Loading mensaje="Cargando panel de estadísticas…" />}>
-                <Statistics />
-              </Suspense>
-            }
-          />
-          <Route path="*" element={<NotFound />} />
-        </Route>
-      </Routes>
+      {/* La ludoteca solo se monta al salir de la portada, para que Digital Queens sea lo primero. */}
+      {mostrarApp && (
+        <Routes>
+          <Route element={<Layout />}>
+            <Route index element={<Home />} />
+            <Route path="recursos" element={<Explore />} />
+            <Route path="recursos/:id" element={<ResourceDetail />} />
+            <Route path="recursos/:id/editar" element={<EditResource />} />
+            <Route path="agregar" element={<AddResource />} />
+            <Route
+              path="estadisticas"
+              element={
+                <Suspense fallback={<Loading mensaje="Cargando panel de estadísticas…" />}>
+                  <Statistics />
+                </Suspense>
+              }
+            />
+            <Route path="*" element={<NotFound />} />
+          </Route>
+        </Routes>
+      )}
     </>
   );
 }

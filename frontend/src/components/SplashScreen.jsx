@@ -76,12 +76,13 @@ function CoronaFlotante({ top, left, size, delay, duration, opacity }) {
  * o cualquier tecla; el elemento raíz es un <button> para que el cierre
  * funcione también con teclado y lectores de pantalla.
  */
-export default function SplashScreen({ onFinish }) {
+export default function SplashScreen({ onFinish, onExitStart }) {
   const [saliendo, setSaliendo] = useState(false);
 
   const cerrar = () => {
     if (saliendo) return;
     setSaliendo(true);
+    onExitStart?.();
     setTimeout(onFinish, DURACION_SALIDA);
   };
 
@@ -123,8 +124,10 @@ export default function SplashScreen({ onFinish }) {
       </span>
 
       <span className="splash__contenido">
-        <span className="splash__marco" style={{ '--retraso': '0ms' }}>
-          <img src={LOGO_SRC} alt="" className="splash__logo" width="256" height="256" />
+        <span className="splash__logo-wrap" style={{ '--retraso': '0ms' }}>
+          <span className="splash__marco">
+            <img src={LOGO_SRC} alt="" className="splash__logo" width="256" height="256" />
+          </span>
         </span>
 
         <span className="splash__eyebrow" style={{ '--retraso': '160ms' }}>

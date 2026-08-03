@@ -1,7 +1,6 @@
 import multer from 'multer';
 import ApiError from '../utils/ApiError.js';
 import { MAX_FILE_SIZE } from './upload.js';
-import { removeUploadedFiles } from '../utils/files.js';
 
 export function notFoundHandler(req, res) {
   res.status(404).json({ message: `Ruta no encontrada: ${req.method} ${req.originalUrl}` });
@@ -9,8 +8,8 @@ export function notFoundHandler(req, res) {
 
 // eslint-disable-next-line no-unused-vars -- Express identifica el handler por sus 4 argumentos.
 export function errorHandler(err, req, res, next) {
-  removeUploadedFiles(req.files);
-
+  // Los archivos viven en memoria hasta que se suben a Supabase, así que
+  // cuando la petición falla no hay nada que limpiar en el disco.
   if (err instanceof ApiError) {
     return res.status(err.status).json({ message: err.message, errors: err.errors ?? undefined });
   }

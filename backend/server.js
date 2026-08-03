@@ -5,29 +5,16 @@ import cors from 'cors';
 import express from 'express';
 import apiRoutes from './routes/index.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
-import { UPLOADS_ROOT, ensureUploadDirs } from './utils/files.js';
-import './database/db.js';
+import './database/supabase.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = process.env.PORT || 4000;
-
-ensureUploadDirs();
 
 const app = express();
 
 app.use(cors());
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true }));
-
-app.use(
-  '/uploads',
-  express.static(UPLOADS_ROOT, {
-    maxAge: '7d',
-    setHeaders(res) {
-      res.setHeader('X-Content-Type-Options', 'nosniff');
-    },
-  }),
-);
 
 app.use('/api', apiRoutes);
 
@@ -37,9 +24,7 @@ const indexHtml = path.join(frontendDist, 'index.html');
 
 app.use(express.static(frontendDist));
 app.use((req, res, next) => {
-  if (req.method !== 'GET' || req.path.startsWith('/api') || req.path.startsWith('/uploads')) {
-    return next();
-  }
+  if (req.method !== 'GET' || req.path.startsWith('/api')) return next();
   if (!fs.existsSync(indexHtml)) return next();
   return res.sendFile(indexHtml);
 });
@@ -49,6 +34,7 @@ app.use(errorHandler);
 
 app.listen(PORT, () => {
   console.log(`✅ API de la Ludoteca Digital en http://localhost:${PORT}/api`);
+  console.log('   Base de datos y archivos: Supabase');
 });
 
 export default app;

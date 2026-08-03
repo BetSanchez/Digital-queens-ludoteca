@@ -1,9 +1,9 @@
 node_modules/
+.env
+!.env.example
+
+# Todo se almacena en Supabase: si algo de esto reaparece, es basura local.
+uploads/
 database/*.db
 database/*.db-shm
 database/*.db-wal
-uploads/pdf/*
-uploads/images/*
-!uploads/pdf/.gitkeep
-!uploads/images/.gitkeep
-.env

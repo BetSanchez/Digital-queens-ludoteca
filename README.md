@@ -1,22 +1,23 @@
 # Ludoteca Digital Colaborativa
 
 Aplicación web para que las participantes de **Mujer Digital** registren, consulten y
-compartan recursos de aprendizaje. No requiere inicio de sesión ni servicios externos:
-los datos viven en un archivo SQLite local y los archivos en la carpeta `uploads/`.
+compartan recursos de aprendizaje. No requiere inicio de sesión: los datos viven en
+**Supabase** (PostgreSQL) y los PDFs e imágenes en **Supabase Storage**.
 
 | Capa | Tecnologías |
 |---|---|
 | Frontend | React 18, Vite, Tailwind CSS, React Router, Recharts, Fetch API |
-| Backend | Node.js, Express, SQLite (better-sqlite3), Multer |
+| Backend | Node.js, Express, Supabase (PostgreSQL + Storage), Multer |
 
 ---
 
 ## Requisitos
 
-- Node.js 18 o superior (probado con 20.9)
+- Node.js 20.12 o superior (usa `--env-file-if-exists`; probado con 24.18)
 - npm 9 o superior
+- Una cuenta gratuita en [supabase.com](https://supabase.com)
 
-## Instalación
+## 1. Instalación
 
 ```bash
 npm run install:all
@@ -29,17 +30,63 @@ cd backend  && npm install
 cd ../frontend && npm install
 ```
 
-## Datos de ejemplo (opcional)
+## 2. Configurar Supabase
 
-Inserta 12 recursos de muestra para ver la aplicación con contenido:
+**a) Crea el proyecto.** Entra a [supabase.com](https://supabase.com) → *New project*.
+Guarda la contraseña de la base de datos que te pida.
 
-```bash
-npm run seed
-# Para reiniciar la base de datos desde cero:
-cd backend && npm run seed -- --force
+**b) Crea las tablas y los buckets.** En el menú lateral abre **SQL Editor → New query**,
+pega el contenido de `supabase/schema.sql` y presiona **Run**. Eso crea:
+
+- la tabla `resources` con sus índices y restricciones;
+- las políticas RLS (la llave pública solo puede leer);
+- los buckets de Storage `recursos-pdf` y `recursos-imagenes`;
+- la función `get_statistics()` que alimenta el panel de estadísticas.
+
+La base arranca vacía: los recursos se dan de alta desde la propia aplicación, en
+`/agregar`.
+
+**c) Conecta el backend.** Abre `backend/.env` (si no existe, cópialo de
+`backend/.env.example`) y pega dos valores del panel de Supabase:
+
+| Variable | Dónde se encuentra en el panel |
+|---|---|
+| `SUPABASE_URL` | Botón **Connect**, arriba en el panel → *Project URL*. Se ve así: `https://abcdefghijklm.supabase.co` |
+| `SUPABASE_SECRET_KEY` | **Settings** (engrane) → **API Keys** → sección *Secret keys* → **Reveal**. Empieza con `sb_secret_` |
+
+Si no encuentras el botón *Connect*, la URL siempre es `https://<ID>.supabase.co`,
+donde `<ID>` es el código que aparece en la barra de direcciones del navegador:
+`supabase.com/dashboard/project/<ID>`.
+
+Pega los valores después del `=`, sin comillas ni espacios:
+
+```env
+SUPABASE_URL=https://abcdefghijklm.supabase.co
+SUPABASE_SECRET_KEY=sb_secret_xxxxxxxxxxxxxxxxxxxxxx
 ```
 
-## Ejecución en desarrollo
+> **Si tu proyecto usa las llaves antiguas:** en **Settings → API Keys** verás una
+> pestaña *Legacy API Keys*; copia de ahí la llave `service_role`. Funciona igual —
+> el backend acepta los dos formatos.
+
+> **No confundas las llaves:** la *publishable* (o `anon`) sirve para leer, pero no
+> para escribir. Si la usas, la app mostraría recursos pero fallaría al guardarlos.
+> El backend detecta este caso al arrancar y te avisa.
+
+> **Importante:** la llave secreta ignora las políticas RLS, es decir, tiene acceso
+> total. Úsala solo en el servidor y nunca la subas a git ni la pegues en el frontend.
+> `backend/.gitignore` ya excluye el archivo `.env`.
+
+**d) Comprueba que todo quedó bien:**
+
+```bash
+npm run check
+```
+
+Verifica la conexión, la tabla, los buckets y la función de estadísticas, y te dice
+exactamente qué falta si algo no cuadra.
+
+## 3. Ejecución en desarrollo
 
 Se necesitan **dos terminales**:
 
@@ -51,10 +98,10 @@ npm run dev:backend
 npm run dev:frontend
 ```
 
-Vite redirige `/api` y `/uploads` al backend, así que no hay que configurar CORS ni
-variables de entorno para trabajar en local.
+Vite redirige `/api` al backend, así que no hay que configurar CORS para trabajar en
+local. Los archivos se sirven directamente desde Supabase Storage.
 
-## Ejecución en producción (un solo proceso)
+## 4. Ejecución en producción (un solo proceso)
 
 ```bash
 npm run build   # genera frontend/dist
@@ -64,21 +111,26 @@ npm start       # Express sirve la API y la interfaz en http://localhost:4000
 El servidor detecta `frontend/dist` y lo sirve automáticamente, incluyendo el
 enrutado del lado del cliente (recargar `/estadisticas` funciona).
 
+Al desplegar en un servicio como Render, Railway o Fly.io, define `SUPABASE_URL` y
+`SUPABASE_SECRET_KEY` como variables de entorno del servicio en lugar de subir el
+archivo `.env`.
+
 ---
 
 ## Estructura del proyecto
 
 ```text
 ludoteca/
+├── supabase/
+│   └── schema.sql            Tabla, índices, RLS, buckets y get_statistics()
 ├── backend/
 │   ├── controllers/          resources.controller.js · statistics.controller.js
 │   ├── routes/               index.js · resources.routes.js · statistics.routes.js
 │   ├── middleware/           upload.js (Multer) · errorHandler.js · asyncHandler.js
-│   ├── utils/                validation.js · files.js · catalogs.js · ApiError.js
-│   ├── database/             db.js · seed.js · database.db
-│   ├── uploads/
-│   │   ├── pdf/
-│   │   └── images/
+│   ├── utils/                validation.js · storage.js · catalogs.js · ApiError.js
+│   ├── database/             supabase.js (cliente con la llave secreta)
+│   ├── scripts/              check-supabase.js (diagnóstico de la conexión)
+│   ├── .env.example
 │   ├── server.js
 │   └── package.json
 └── frontend/
@@ -109,7 +161,7 @@ Base: `http://localhost:4000/api`
 | GET | `/resources/:id` | Detalle de un recurso |
 | POST | `/resources` | Crea un recurso (`multipart/form-data`) |
 | PUT | `/resources/:id` | Actualiza un recurso (acepta cambios parciales) |
-| DELETE | `/resources/:id` | Elimina el recurso y sus archivos físicos |
+| DELETE | `/resources/:id` | Elimina el recurso y sus archivos en Storage |
 | GET | `/statistics` | Cifras y series para el panel de estadísticas |
 | GET | `/options` | Catálogos de tipos, categorías e idiomas |
 | GET | `/health` | Comprobación de estado |
@@ -141,36 +193,68 @@ Todos los errores devuelven JSON. Las validaciones incluyen el detalle por campo
 
 ### Carga de archivos
 
-- Campo `archivo`: solo PDF → se guarda en `backend/uploads/pdf/`
-- Campo `imagen`: JPG, PNG, WEBP o GIF → se guarda en `backend/uploads/images/`
-- Tamaño máximo: **10 MB** por archivo
-- SQLite guarda únicamente la ruta pública (por ejemplo `/uploads/pdf/guia-123.pdf`)
-- Al eliminar o reemplazar un recurso, los archivos anteriores se borran del disco
+- Campo `archivo`: solo PDF → bucket `recursos-pdf`
+- Campo `imagen`: JPG, PNG, WEBP o GIF → bucket `recursos-imagenes`
+- Tamaño máximo: **10 MB** por archivo (validado en Multer y en el bucket)
+- Multer mantiene el archivo en memoria y solo lo sube cuando la validación pasa,
+  así no queda basura si la petición falla
+- La tabla guarda la **URL pública completa** de Supabase Storage
+- Al eliminar o reemplazar un recurso, los archivos anteriores se borran del bucket
 
 ---
 
 ## Base de datos
 
-Una sola tabla, `resources`:
+Definida en `supabase/schema.sql`. Una sola tabla, `resources`:
 
 | Campo | Tipo | Notas |
 |---|---|---|
-| `id` | INTEGER | Clave primaria autoincremental |
-| `nombre` | TEXT | Obligatorio |
-| `participante` | TEXT | Obligatorio |
-| `tipo` | TEXT | Obligatorio, validado contra el catálogo |
-| `categoria` | TEXT | Obligatorio, validado contra el catálogo |
-| `idioma` | TEXT | Opcional |
-| `enlace` | TEXT | Opcional, debe ser `http(s)://` |
-| `archivo` | TEXT | Ruta del PDF, opcional |
-| `imagen` | TEXT | Ruta de la portada, opcional |
-| `descubrimiento` | TEXT | Obligatorio — ¿cómo lo descubriste? |
-| `contribucion` | TEXT | Obligatorio — ¿cómo contribuyó a tu desarrollo? |
-| `recomendacion` | TEXT | Obligatorio — ¿por qué lo recomendarías? |
-| `fecha` | TEXT | `datetime('now')` al crear |
+| `id` | bigint | Clave primaria (`generated always as identity`) |
+| `nombre` | text | Obligatorio, máx. 150 |
+| `participante` | text | Obligatorio, máx. 100 |
+| `tipo` | text | Obligatorio, validado contra el catálogo |
+| `categoria` | text | Obligatorio, validado contra el catálogo |
+| `idioma` | text | Opcional |
+| `enlace` | text | Opcional, debe ser `http(s)://` |
+| `archivo` | text | URL del PDF en Storage, opcional |
+| `imagen` | text | URL de la portada en Storage, opcional |
+| `descubrimiento` | text | Obligatorio — ¿cómo lo descubriste? |
+| `contribucion` | text | Obligatorio — ¿cómo contribuyó a tu desarrollo? |
+| `recomendacion` | text | Obligatorio — ¿por qué lo recomendarías? |
+| `fecha` | timestamptz | `now()` al crear |
 
 Hay índices sobre `categoria`, `tipo`, `participante` y `fecha` para que los filtros
-y las estadísticas no recorran la tabla completa.
+y las estadísticas no recorran la tabla completa, más dos índices GIN (`pg_trgm`)
+que aceleran la búsqueda por texto.
+
+No hay datos precargados: la tabla empieza vacía y se llena desde el formulario de
+la aplicación.
+
+### Empezar de cero
+
+Para vaciar la tabla y reiniciar los IDs desde 1, ejecuta esto en el **SQL Editor**:
+
+```sql
+truncate table public.resources restart identity;
+```
+
+Eso borra los registros pero **no** los PDFs ni las imágenes ya subidos. Para
+limpiarlos también, ve a **Storage** y vacía los buckets `recursos-pdf` y
+`recursos-imagenes`. (Borrar un recurso desde la aplicación sí elimina sus archivos;
+el `truncate` es una operación directa en la base que se salta esa lógica.)
+
+### Seguridad (RLS)
+
+La tabla tiene *Row Level Security* activo con una única política: **lectura pública**.
+No existen políticas de escritura, así que toda alta, edición o borrado tiene que pasar
+por el backend, que usa la llave secreta. Si la llave pública quedara expuesta en el
+navegador, no podría modificar nada.
+
+### Estadísticas
+
+Las seis métricas del panel se calculan en PostgreSQL con la función
+`get_statistics()`, que devuelve un solo JSON. El backend hace una única llamada
+(`supabase.rpc('get_statistics')`) en lugar de seis consultas.
 
 Los catálogos de tipos, categorías e idiomas se definen en
 `backend/utils/catalogs.js` y se exponen en `GET /api/options`; el frontend los
@@ -213,9 +297,9 @@ reemplazarlo.
 - **Validación doble:** el formulario valida en el navegador y `backend/utils/validation.js`
   vuelve a validar todo antes de tocar la base de datos. Nunca confíes solo en el cliente.
 - **Errores centralizados:** todos los controladores usan `asyncHandler`, así que cualquier
-  excepción llega a `middleware/errorHandler.js`, que también limpia los archivos que se
-  hubieran subido en una petición fallida.
-- **Rutas de archivo seguras:** `utils/files.js` normaliza las rutas antes de borrar,
-  de modo que nada pueda escribir ni eliminar fuera de `uploads/`.
+  excepción llega a `middleware/errorHandler.js`. Los errores de Supabase se registran con
+  su contexto en la consola y al usuario solo le llega un mensaje genérico.
+- **Storage transaccional:** si la inserción en la base de datos falla después de haber
+  subido un archivo, `utils/storage.js` lo borra para no dejar huérfanos en el bucket.
 - **Carga diferida:** Recharts solo se descarga al entrar a `/estadisticas`, lo que
   mantiene el paquete inicial en ~217 kB en lugar de ~636 kB.

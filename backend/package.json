@@ -5,13 +5,13 @@
   "type": "module",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node --watch server.js",
-    "seed": "node database/seed.js"
+    "start": "node --env-file-if-exists=.env server.js",
+    "dev": "node --env-file-if-exists=.env --watch server.js",
+    "check": "node --env-file-if-exists=.env scripts/check-supabase.js"
   },
   "license": "MIT",
   "dependencies": {
-    "better-sqlite3": "^11.5.0",
+    "@supabase/supabase-js": "^2.111.0",
     "cors": "^2.8.5",
     "express": "^4.21.1",
     "multer": "^2.0.1"

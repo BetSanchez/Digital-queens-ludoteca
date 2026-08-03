@@ -1,57 +1,17 @@
-import db from '../database/db.js';
-
-const queries = {
-  resumen: db.prepare(`
-    SELECT
-      COUNT(*)                                        AS totalRecursos,
-      COUNT(DISTINCT participante COLLATE NOCASE)     AS totalParticipantes,
-      COUNT(DISTINCT categoria)                       AS totalCategorias,
-      SUM(CASE WHEN archivo IS NOT NULL AND archivo <> '' THEN 1 ELSE 0 END) AS totalConPdf,
-      SUM(CASE WHEN enlace  IS NOT NULL AND enlace  <> '' THEN 1 ELSE 0 END) AS totalConEnlace
-    FROM resources
-  `),
-
-  porCategoria: db.prepare(`
-    SELECT categoria AS name, COUNT(*) AS total
-    FROM resources
-    GROUP BY categoria
-    ORDER BY total DESC, name ASC
-  `),
-
-  porTipo: db.prepare(`
-    SELECT tipo AS name, COUNT(*) AS total
-    FROM resources
-    GROUP BY tipo
-    ORDER BY total DESC, name ASC
-  `),
-
-  porMes: db.prepare(`
-    SELECT strftime('%Y-%m', fecha) AS mes, COUNT(*) AS total
-    FROM resources
-    GROUP BY mes
-    ORDER BY mes ASC
-  `),
-
-  porIdioma: db.prepare(`
-    SELECT COALESCE(NULLIF(idioma, ''), 'Sin especificar') AS name, COUNT(*) AS total
-    FROM resources
-    GROUP BY name
-    ORDER BY total DESC, name ASC
-  `),
-
-  topParticipantes: db.prepare(`
-    SELECT participante AS name, COUNT(*) AS total
-    FROM resources
-    GROUP BY participante COLLATE NOCASE
-    ORDER BY total DESC, name ASC
-    LIMIT ?
-  `),
-};
+import supabase from '../database/supabase.js';
 
 const MESES = [
   'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
   'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic',
 ];
+
+const RESUMEN_VACIO = {
+  totalRecursos: 0,
+  totalParticipantes: 0,
+  totalCategorias: 0,
+  totalConPdf: 0,
+  totalConEnlace: 0,
+};
 
 /** Rellena los meses sin registros para que la línea no tenga huecos. */
 function completarMeses(filas) {
@@ -82,22 +42,25 @@ function completarMeses(filas) {
   return serie;
 }
 
-/** GET /api/statistics */
-export function getStatistics(req, res) {
-  const resumen = queries.resumen.get();
+/**
+ * GET /api/statistics
+ * Todas las métricas llegan en una sola llamada a la función SQL
+ * `get_statistics()` definida en supabase/schema.sql.
+ */
+export async function getStatistics(req, res) {
+  const { data, error } = await supabase.rpc('get_statistics');
+
+  if (error) {
+    console.error('[supabase] Error al calcular estadísticas:', error);
+    throw new Error('Error de base de datos al calcular las estadísticas.');
+  }
 
   res.json({
-    resumen: {
-      totalRecursos: resumen.totalRecursos ?? 0,
-      totalParticipantes: resumen.totalParticipantes ?? 0,
-      totalCategorias: resumen.totalCategorias ?? 0,
-      totalConPdf: resumen.totalConPdf ?? 0,
-      totalConEnlace: resumen.totalConEnlace ?? 0,
-    },
-    porCategoria: queries.porCategoria.all(),
-    porTipo: queries.porTipo.all(),
-    porMes: completarMeses(queries.porMes.all()),
-    porIdioma: queries.porIdioma.all(),
-    topParticipantes: queries.topParticipantes.all(10),
+    resumen: { ...RESUMEN_VACIO, ...(data?.resumen ?? {}) },
+    porCategoria: data?.porCategoria ?? [],
+    porTipo: data?.porTipo ?? [],
+    porMes: completarMeses(data?.porMes ?? []),
+    porIdioma: data?.porIdioma ?? [],
+    topParticipantes: data?.topParticipantes ?? [],
   });
 }
