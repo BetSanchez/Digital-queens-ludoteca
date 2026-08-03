@@ -33,8 +33,37 @@ export default function Footer() {
       </div>
 
       <div className="border-t border-white/10">
-        <div className="container-page py-4 text-center text-xs text-plum-200/70">
-          Ludoteca Digital Colaborativa · Mujer Digital
+        <div className="container-page flex flex-col items-center gap-6 py-7 sm:flex-row sm:justify-center sm:gap-10">
+          <div className="flex flex-col items-center gap-2.5 sm:flex-row sm:gap-3">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-plum-200/60">
+              Un proyecto del programa
+            </span>
+            <img
+              src="/logo/mujer-digital-blanco.png"
+              alt="Mujer Digital"
+              className="h-7 w-auto"
+              width="821"
+              height="384"
+            />
+          </div>
+
+          <span className="hidden h-9 w-px bg-white/15 sm:block" aria-hidden="true" />
+
+          <div className="flex flex-col items-center gap-2.5 sm:flex-row sm:gap-3">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-plum-200/60">
+              Desarrollado por
+            </span>
+            <span className="flex items-center gap-2">
+              <img
+                src="/logo/logoDC.jpeg"
+                alt=""
+                className="h-8 w-8 rounded-lg object-cover ring-1 ring-white/15"
+                width="32"
+                height="32"
+              />
+              <span className="text-sm font-bold tracking-tight text-white">Digital Queens</span>
+            </span>
+          </div>
         </div>
       </div>
     </footer>

@@ -9,13 +9,16 @@ import {
   YAxis,
 } from 'recharts';
 import ChartCard, { ChartEmpty, ChartTooltip } from './ChartCard';
-import { COLOR_SERIE, EJE, acortar } from '../../utils/charts';
+import useMediaQuery from '../../hooks/useMediaQuery';
+import { COLOR_SERIE, CONSULTA_MOVIL, EJE, acortar } from '../../utils/charts';
 
 /**
  * Una sola serie (número de recursos), por lo que todas las barras comparten
  * color: el color no codifica información y variarlo sería ruido.
  */
 export default function CategoriasBarChart({ datos }) {
+  const compacto = useMediaQuery(CONSULTA_MOVIL);
+
   return (
     <ChartCard
       titulo="Recursos por categoría"
@@ -24,27 +27,31 @@ export default function CategoriasBarChart({ datos }) {
       {datos.length === 0 ? (
         <ChartEmpty />
       ) : (
-        <div className="h-80 w-full">
+        <div className="h-72 w-full sm:h-80">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={datos} margin={{ top: 16, right: 8, bottom: 8, left: -18 }} barCategoryGap="22%">
+            <BarChart
+              data={datos}
+              margin={{ top: 16, right: 8, bottom: 8, left: compacto ? -26 : -18 }}
+              barCategoryGap="22%"
+            >
               <CartesianGrid stroke={EJE.grid} vertical={false} />
               <XAxis
                 dataKey="name"
-                tickFormatter={(v) => acortar(v, 12)}
-                tick={EJE.tick}
+                tickFormatter={(v) => acortar(v, compacto ? 8 : 12)}
+                tick={compacto ? EJE.tickCompacto : EJE.tick}
                 tickLine={false}
                 axisLine={{ stroke: EJE.linea }}
                 interval={0}
-                angle={-28}
+                angle={compacto ? -45 : -28}
                 textAnchor="end"
-                height={68}
+                height={compacto ? 76 : 68}
               />
               <YAxis
                 allowDecimals={false}
-                tick={EJE.tick}
+                tick={compacto ? EJE.tickCompacto : EJE.tick}
                 tickLine={false}
                 axisLine={false}
-                width={44}
+                width={compacto ? 34 : 44}
               />
               <Tooltip
                 cursor={{ fill: 'rgba(120, 51, 166, 0.06)' }}

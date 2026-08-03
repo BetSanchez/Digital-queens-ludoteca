@@ -26,9 +26,13 @@ export const MAX_CATEGORIAS_PASTEL = PALETA_CATEGORICA.length;
 
 export const EJE = {
   tick: { fill: '#6b6472', fontSize: 12 },
+  tickCompacto: { fill: '#6b6472', fontSize: 10 },
   linea: '#e3d3ee',
   grid: '#f2eaf7',
 };
+
+/** Ancho a partir del cual las gráficas caben con sus medidas completas. */
+export const CONSULTA_MOVIL = '(max-width: 639px)';
 
 /** Agrupa la cola de una distribución en "Otros" para no exceder la paleta. */
 export function agruparCola(datos, maximo = MAX_CATEGORIAS_PASTEL) {

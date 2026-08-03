@@ -101,7 +101,7 @@ export default function ResourceDetail() {
         {/* Contenido principal */}
         <div className="space-y-6">
           <header className="card overflow-hidden">
-            <div className="aspect-[21/9] w-full bg-plum-100">
+            <div className="aspect-[16/9] w-full bg-plum-100 sm:aspect-[21/9]">
               {portada ? (
                 <img src={portada} alt={`Portada de ${recurso.nombre}`} className="h-full w-full object-cover" />
               ) : (
@@ -113,14 +113,14 @@ export default function ResourceDetail() {
               )}
             </div>
 
-            <div className="p-6">
+            <div className="p-5 sm:p-6">
               <div className="flex flex-wrap gap-2">
                 <Badge variant="categoria" icon={IconTag}>{recurso.categoria}</Badge>
                 <Badge variant="tipo">{recurso.tipo}</Badge>
                 {recurso.idioma && <Badge variant="neutro" icon={IconGlobe}>{recurso.idioma}</Badge>}
               </div>
 
-              <h1 className="mt-3 text-2xl font-extrabold leading-tight tracking-tight text-plum-900 sm:text-3xl">
+              <h1 className="mt-3 break-words text-2xl font-extrabold leading-tight tracking-tight text-plum-900 sm:text-3xl">
                 {recurso.nombre}
               </h1>
 
@@ -139,7 +139,7 @@ export default function ResourceDetail() {
             </div>
           </header>
 
-          <section className="card p-6" aria-labelledby="titulo-respuestas">
+          <section className="card p-5 sm:p-6" aria-labelledby="titulo-respuestas">
             <h2 id="titulo-respuestas" className="text-lg font-bold text-plum-900">
               La experiencia de {recurso.participante.split(' ')[0]}
             </h2>
@@ -211,8 +211,8 @@ export default function ResourceDetail() {
                 ['Publicación', formatFecha(recurso.fecha)],
               ].map(([etiqueta, valor]) => (
                 <div key={etiqueta} className="flex items-start justify-between gap-4 py-2.5">
-                  <dt className="text-muted">{etiqueta}</dt>
-                  <dd className="text-right font-medium text-plum-900">{valor}</dd>
+                  <dt className="shrink-0 text-muted">{etiqueta}</dt>
+                  <dd className="min-w-0 break-words text-right font-medium text-plum-900">{valor}</dd>
                 </div>
               ))}
             </dl>

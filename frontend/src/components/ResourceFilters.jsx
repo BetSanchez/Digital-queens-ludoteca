@@ -23,8 +23,8 @@ export default function ResourceFilters({ filtros, onChange, onLimpiar, categori
 
   return (
     <section className="card p-4 sm:p-5" aria-label="Buscar y filtrar recursos">
-      <div className="grid gap-3 lg:grid-cols-[minmax(0,2fr)_repeat(3,minmax(0,1fr))]">
-        <div className="relative">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,2fr)_repeat(3,minmax(0,1fr))]">
+        <div className="relative sm:col-span-2 lg:col-span-1">
           <label htmlFor="buscar" className="sr-only">
             Buscar por nombre, participante o categoría
           </label>

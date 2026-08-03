@@ -74,16 +74,25 @@
    ========================================================================== */
 
 .splash {
+  /* El tamaño se limita también por la altura para que la portada quepa
+     entera en móvil horizontal y en pantallas bajas. */
+  --splash-logo: clamp(8.5rem, min(28vw, 26vh), 13.6rem);
+  --splash-programa: clamp(6.5rem, min(21vw, 14vh), 10.5rem);
   position: fixed;
   inset: 0;
   z-index: 100;
   display: flex;
   align-items: center;
+  /* `safe` evita que el contenido se recorte por arriba cuando no cabe. */
+  align-items: safe center;
   justify-content: center;
-  overflow: hidden;
+  /* Red de seguridad para pantallas muy bajas (móvil en horizontal). */
+  overflow-x: hidden;
+  overflow-y: auto;
   width: 100%;
   cursor: pointer;
-  padding: 2rem 1.25rem;
+  padding: clamp(1rem, 4vh, 2rem) max(1.25rem, env(safe-area-inset-left))
+    clamp(1rem, 4vh, 2rem) max(1.25rem, env(safe-area-inset-right));
   text-align: center;
   color: #ffffff;
   background:
@@ -104,6 +113,15 @@
 }
 
 /* --- Ambiente ------------------------------------------------------------ */
+
+/* Recorta los resplandores: sobresalen del borde y, sin este contenedor,
+   añadirían desplazamiento sobrante a la portada. */
+.splash__ambiente {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
 
 .splash__orbe {
   position: absolute;
@@ -191,6 +209,9 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  /* `margin: auto` centra sin recortar cuando el contenido desborda. */
+  margin: auto;
+  width: 100%;
   max-width: 56rem;
 }
 
@@ -227,9 +248,8 @@
 }
 
 .splash__logo {
-  /* 0.5 cm menos por lado → 1 cm menos en ancho y alto */
-  width: clamp(calc(11rem - 1cm), calc(28vw - 1cm), calc(16rem - 1cm));
-  height: clamp(calc(11rem - 1cm), calc(28vw - 1cm), calc(16rem - 1cm));
+  width: var(--splash-logo);
+  height: var(--splash-logo);
   border-radius: 9999px;
   object-fit: cover;
   display: block;
@@ -240,18 +260,32 @@
   animation: splash-logo-disco 1.15s linear infinite;
 }
 
-.splash__eyebrow {
-  margin-top: 2rem;
-  font-size: 0.7rem;
+.splash__programa {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.65rem;
+  margin-top: clamp(1rem, 3.5vh, 2rem);
+}
+
+.splash__programa-etiqueta {
+  font-size: 0.62rem;
   font-weight: 700;
   letter-spacing: 0.32em;
   text-transform: uppercase;
-  color: #e3d3ee;
+  color: rgba(227, 211, 238, 0.7);
+}
+
+.splash__programa-logo {
+  display: block;
+  width: var(--splash-programa);
+  height: auto;
+  filter: drop-shadow(0 6px 20px rgba(13, 13, 13, 0.45));
 }
 
 .splash__frase {
   display: block;
-  margin-top: 1rem;
+  margin-top: clamp(0.5rem, 2vh, 1rem);
   text-wrap: balance;
 }
 
@@ -263,7 +297,7 @@
 }
 
 .splash__linea--titulo {
-  font-size: clamp(2rem, 7.5vw, 4.25rem);
+  font-size: clamp(1.9rem, min(7.5vw, 9.5vh), 4.25rem);
   background: linear-gradient(100deg, #ffffff 10%, #e3d3ee 55%, #c9aede 100%);
   -webkit-background-clip: text;
   background-clip: text;
@@ -272,7 +306,7 @@
 
 .splash__linea--lema {
   margin-top: 0.6rem;
-  font-size: clamp(1.35rem, 4.4vw, 2.6rem);
+  font-size: clamp(1.15rem, min(4.4vw, 5.6vh), 2.6rem);
   color: #f2eaf7;
 }
 
@@ -293,13 +327,13 @@
 .splash__regla {
   width: 4.5rem;
   height: 2px;
-  margin-top: 2rem;
+  margin-top: clamp(1rem, 3.5vh, 2rem);
   border-radius: 9999px;
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.75), transparent);
 }
 
 .splash__pie {
-  margin-top: 1.25rem;
+  margin-top: clamp(0.65rem, 2.2vh, 1.25rem);
   font-size: 0.9rem;
   font-weight: 500;
   letter-spacing: 0.02em;
@@ -311,7 +345,7 @@
   flex-direction: column;
   align-items: center;
   gap: 0.35rem;
-  margin-top: 3.25rem;
+  margin-top: clamp(1.25rem, 5vh, 3.25rem);
   font-size: 0.8rem;
   font-weight: 600;
   letter-spacing: 0.08em;
@@ -393,6 +427,23 @@
   }
   66% {
     transform: translate3d(1.4rem, -2.2rem, 0) rotate(12deg) scale(0.94);
+  }
+}
+
+/* Pantallas bajas (móvil en horizontal, ventanas reducidas): la portada se
+   compacta para que la frase y la invitación a entrar sigan visibles. */
+@media (max-height: 620px) {
+  .splash {
+    --splash-logo: clamp(4.5rem, 20vh, 8rem);
+    --splash-programa: clamp(5rem, 22vh, 7rem);
+  }
+
+  .splash__regla {
+    display: none;
+  }
+
+  .splash__pista {
+    margin-top: 1rem;
   }
 }
 

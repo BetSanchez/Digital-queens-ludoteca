@@ -138,7 +138,10 @@ export default function Explore() {
               </div>
 
               {paginas > 1 && (
-                <nav className="mt-8 flex items-center justify-center gap-2" aria-label="Paginación">
+                <nav
+                  className="mt-8 flex flex-wrap items-center justify-center gap-2"
+                  aria-label="Paginación"
+                >
                   <Button
                     variant="secondary"
                     size="sm"
@@ -147,7 +150,9 @@ export default function Explore() {
                   >
                     Anterior
                   </Button>
-                  <span className="px-3 text-sm font-medium text-muted">
+                  {/* En pantallas estrechas el indicador ocupa su propia línea
+                      para que los dos botones quepan uno junto al otro. */}
+                  <span className="order-first w-full text-center text-sm font-medium text-muted sm:order-none sm:w-auto sm:px-3">
                     Página {pagina + 1} de {paginas}
                   </span>
                   <Button

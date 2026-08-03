@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 
 const LOGO_SRC = '/logo/logoDC.jpeg';
+const LOGO_PROGRAMA = '/logo/mujer-digital-blanco.png';
 const DURACION_SALIDA = 620;
 
 /** Coronas decorativas repartidas por toda la pantalla de bienvenida. */
@@ -112,10 +113,12 @@ export default function SplashScreen({ onFinish, onExitStart }) {
       className={`splash ${saliendo ? 'splash--saliendo' : ''}`}
     >
       {/* Ambiente: resplandores y retícula, puramente decorativos */}
-      <span className="splash__orbe splash__orbe--1" aria-hidden="true" />
-      <span className="splash__orbe splash__orbe--2" aria-hidden="true" />
-      <span className="splash__orbe splash__orbe--3" aria-hidden="true" />
-      <span className="splash__reticula" aria-hidden="true" />
+      <span className="splash__ambiente" aria-hidden="true">
+        <span className="splash__orbe splash__orbe--1" />
+        <span className="splash__orbe splash__orbe--2" />
+        <span className="splash__orbe splash__orbe--3" />
+        <span className="splash__reticula" />
+      </span>
 
       <span className="splash__coronas" aria-hidden="true">
         {CORONAS.map((corona, i) => (
@@ -130,8 +133,15 @@ export default function SplashScreen({ onFinish, onExitStart }) {
           </span>
         </span>
 
-        <span className="splash__eyebrow" style={{ '--retraso': '160ms' }}>
-          Mujer Digital
+        <span className="splash__programa" style={{ '--retraso': '160ms' }}>
+          <span className="splash__programa-etiqueta">Programa</span>
+          <img
+            src={LOGO_PROGRAMA}
+            alt="Mujer Digital"
+            className="splash__programa-logo"
+            width="821"
+            height="384"
+          />
         </span>
 
         <span className="splash__frase">

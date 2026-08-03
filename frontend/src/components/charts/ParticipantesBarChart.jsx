@@ -9,11 +9,13 @@ import {
   YAxis,
 } from 'recharts';
 import ChartCard, { ChartEmpty, ChartTooltip } from './ChartCard';
-import { COLOR_SERIE_ALT, EJE, acortar } from '../../utils/charts';
+import useMediaQuery from '../../hooks/useMediaQuery';
+import { COLOR_SERIE_ALT, CONSULTA_MOVIL, EJE, acortar } from '../../utils/charts';
 
 /** Barras horizontales: las etiquetas son nombres largos y se leen mejor así. */
 export default function ParticipantesBarChart({ datos }) {
-  const altura = Math.max(240, datos.length * 42 + 40);
+  const compacto = useMediaQuery(CONSULTA_MOVIL);
+  const altura = Math.max(240, datos.length * (compacto ? 36 : 42) + 40);
 
   return (
     <ChartCard
@@ -28,25 +30,25 @@ export default function ParticipantesBarChart({ datos }) {
             <BarChart
               data={datos}
               layout="vertical"
-              margin={{ top: 4, right: 32, bottom: 4, left: 8 }}
+              margin={{ top: 4, right: compacto ? 20 : 32, bottom: 4, left: compacto ? 0 : 8 }}
               barCategoryGap="24%"
             >
               <CartesianGrid stroke={EJE.grid} horizontal={false} />
               <XAxis
                 type="number"
                 allowDecimals={false}
-                tick={EJE.tick}
+                tick={compacto ? EJE.tickCompacto : EJE.tick}
                 tickLine={false}
                 axisLine={{ stroke: EJE.linea }}
               />
               <YAxis
                 type="category"
                 dataKey="name"
-                tick={EJE.tick}
+                tick={compacto ? EJE.tickCompacto : EJE.tick}
                 tickLine={false}
                 axisLine={false}
-                width={132}
-                tickFormatter={(v) => acortar(v, 16)}
+                width={compacto ? 84 : 132}
+                tickFormatter={(v) => acortar(v, compacto ? 11 : 16)}
               />
               <Tooltip
                 cursor={{ fill: 'rgba(100, 39, 140, 0.06)' }}

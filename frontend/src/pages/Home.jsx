@@ -10,7 +10,6 @@ import {
   IconDocument,
   IconGrid,
   IconPlus,
-  IconSparkle,
   IconTag,
   IconUsers,
 } from '../components/Icons';
@@ -49,9 +48,18 @@ export default function Home() {
         <div className="container-page relative py-16 sm:py-20 lg:py-24">
           <div className="flex flex-col items-center gap-10 animate-fade-up lg:flex-row lg:items-center lg:justify-between lg:gap-12">
             <div className="max-w-3xl">
-              <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3.5 py-1.5 text-xs font-semibold uppercase tracking-[0.14em]">
-                <IconSparkle className="h-3.5 w-3.5" />
-                Mujer Digital
+              <span className="inline-flex items-center gap-3 rounded-full border border-white/20 bg-white/10 py-2 pl-4 pr-4">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-plum-200">
+                  Programa
+                </span>
+                <span className="h-4 w-px bg-white/25" aria-hidden="true" />
+                <img
+                  src="/logo/mujer-digital-blanco.png"
+                  alt="Mujer Digital"
+                  className="h-6 w-auto"
+                  width="821"
+                  height="384"
+                />
               </span>
 
               <h1 className="mt-5 text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl lg:text-5xl">
@@ -59,9 +67,17 @@ export default function Home() {
               </h1>
 
               <p className="mt-4 max-w-2xl text-base leading-relaxed text-plum-200 sm:text-lg">
-                Un espacio compartido donde las participantes registran los cursos, libros,
-                herramientas y comunidades que impulsaron su aprendizaje, para que otras puedan
-                descubrirlos y aprovecharlos.
+                Queremos transmitir el apoyo que podemos darnos entre nosotras, como comunidad,
+                compartiendo las herramientas que nos han funcionado individualmente con la
+                esperanza de que también le sirvan a alguien más del grupo.
+              </p>
+
+              <p className="mt-3 max-w-2xl text-base leading-relaxed text-plum-200 sm:text-lg">
+                Todo con el objetivo de{' '}
+                <strong className="font-semibold text-white">
+                  impulsar nuestro crecimiento personal y profesional
+                </strong>
+                , tanto ahora como al terminar el programa.
               </p>
 
               <div className="mt-8 flex flex-wrap gap-3">

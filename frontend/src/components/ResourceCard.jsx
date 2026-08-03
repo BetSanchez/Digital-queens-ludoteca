@@ -23,8 +23,11 @@ export default function ResourceCard({ recurso }) {
           </div>
         )}
 
-        <div className="absolute left-3 top-3 flex flex-wrap gap-1.5">
-          <Badge variant="solido">{categoria}</Badge>
+        {/* Deja libre la esquina derecha, donde van los indicadores de PDF y enlace. */}
+        <div className="absolute left-3 top-3 flex max-w-[calc(100%-5.5rem)] flex-wrap gap-1.5">
+          <Badge variant="solido" className="max-w-full">
+            <span className="truncate">{categoria}</span>
+          </Badge>
         </div>
 
         {(archivo || enlace) && (
@@ -52,9 +55,11 @@ export default function ResourceCard({ recurso }) {
       </div>
 
       <div className="flex flex-1 flex-col p-5">
-        <Badge variant="tipo" className="self-start">{tipo}</Badge>
+        <Badge variant="tipo" className="max-w-full self-start">
+          <span className="truncate">{tipo}</span>
+        </Badge>
 
-        <h3 className="mt-2.5 line-clamp-2 text-base font-bold leading-snug text-plum-900">
+        <h3 className="mt-2.5 line-clamp-2 break-words text-base font-bold leading-snug text-plum-900">
           <Link to={`/recursos/${id}`} className="hover:text-plum-600">
             {nombre}
           </Link>
