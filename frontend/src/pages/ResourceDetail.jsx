@@ -1,8 +1,8 @@
-import { useCallback, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useCallback } from 'react';
+import { Link, useParams } from 'react-router-dom';
 import Badge from '../components/Badge';
 import Button from '../components/Button';
-import { Alert, ErrorState, Loading } from '../components/Feedback';
+import { ErrorState, Loading } from '../components/Feedback';
 import {
   IconArrowLeft,
   IconCalendar,
@@ -12,11 +12,10 @@ import {
   IconLink,
   IconPencil,
   IconTag,
-  IconTrash,
   IconUser,
 } from '../components/Icons';
 import useFetch from '../hooks/useFetch';
-import { deleteResource, getResource } from '../services/api';
+import { getResource } from '../services/api';
 import { formatFecha, iniciales, urlArchivo } from '../utils/format';
 
 const PREGUNTAS = [
@@ -36,26 +35,9 @@ const PREGUNTAS = [
 
 export default function ResourceDetail() {
   const { id } = useParams();
-  const navigate = useNavigate();
-  const [eliminando, setEliminando] = useState(false);
-  const [confirmar, setConfirmar] = useState(false);
-  const [errorBorrado, setErrorBorrado] = useState(null);
 
   const consulta = useCallback((signal) => getResource(id, signal), [id]);
   const { datos: recurso, cargando, error, recargar } = useFetch(consulta, [id]);
-
-  const eliminar = async () => {
-    setEliminando(true);
-    setErrorBorrado(null);
-    try {
-      await deleteResource(id);
-      navigate('/recursos', { replace: true });
-    } catch (err) {
-      setErrorBorrado(err.message);
-      setEliminando(false);
-      setConfirmar(false);
-    }
-  };
 
   if (cargando) return <Loading mensaje="Cargando recurso…" />;
 
@@ -88,14 +70,6 @@ export default function ResourceDetail() {
         <IconArrowLeft className="h-4 w-4" />
         Volver al catálogo
       </Link>
-
-      {errorBorrado && (
-        <div className="mt-4">
-          <Alert titulo="No se pudo eliminar el recurso" onClose={() => setErrorBorrado(null)}>
-            {errorBorrado}
-          </Alert>
-        </div>
-      )}
 
       <div className="mt-5 grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
         {/* Contenido principal */}
@@ -221,7 +195,7 @@ export default function ResourceDetail() {
           <div className="card p-5">
             <h2 className="text-sm font-bold uppercase tracking-wider text-plum-900">Administrar</h2>
             <p className="mt-1 text-xs text-muted">
-              Corrige la información del recurso o retíralo de la ludoteca.
+              Corrige la información del recurso.
             </p>
 
             <div className="mt-3.5 space-y-2.5">
@@ -229,35 +203,6 @@ export default function ResourceDetail() {
                 <IconPencil className="h-4 w-4" />
                 Editar recurso
               </Button>
-
-              {confirmar ? (
-                <div className="rounded-xl border border-red-200 bg-red-50 p-3.5">
-                  <p className="text-sm font-semibold text-red-900">
-                    ¿Eliminar este recurso de forma permanente?
-                  </p>
-                  <p className="mt-1 text-xs text-red-800">
-                    También se borrarán el PDF y la imagen asociados.
-                  </p>
-                  <div className="mt-3 flex gap-2">
-                    <Button variant="danger" size="sm" onClick={eliminar} disabled={eliminando}>
-                      {eliminando ? 'Eliminando…' : 'Sí, eliminar'}
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={() => setConfirmar(false)} disabled={eliminando}>
-                      Cancelar
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <Button
-                  variant="ghost"
-                  full
-                  onClick={() => setConfirmar(true)}
-                  className="text-red-700 hover:bg-red-50"
-                >
-                  <IconTrash className="h-4 w-4" />
-                  Eliminar recurso
-                </Button>
-              )}
             </div>
           </div>
         </aside>
