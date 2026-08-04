@@ -115,6 +115,31 @@ Al desplegar en un servicio como Render, Railway o Fly.io, define `SUPABASE_URL`
 `SUPABASE_SECRET_KEY` como variables de entorno del servicio en lugar de subir el
 archivo `.env`.
 
+## 5. Despliegue en Vercel (dos proyectos)
+
+Vercel no ejecuta servidores permanentes, así que el backend corre como función
+serverless: `backend/api/index.js` exporta la app y `backend/vercel.json` manda
+todas las rutas hacia ella. Nunca se llama a `app.listen()` ahí.
+
+Crea **dos proyectos** en Vercel apuntando al mismo repositorio:
+
+| Proyecto | Root Directory | Variables de entorno |
+| --- | --- | --- |
+| Backend | `backend` | `SUPABASE_URL`, `SUPABASE_SECRET_KEY` |
+| Frontend | `frontend` | `VITE_API_URL=https://<backend>.vercel.app/api` |
+
+Detalles que suelen fallar:
+
+- El `.env` está en `.gitignore`, así que las variables hay que capturarlas en
+  Settings > Environment Variables de cada proyecto. Si faltan las de Supabase,
+  la función responde 500 y el navegador lo reporta como un error de CORS.
+- `VITE_API_URL` se incrusta durante el build: después de cambiarla hay que
+  volver a desplegar el frontend, no basta con recargar la página.
+- Opcional: define `CORS_ORIGIN` en el backend con la URL del frontend para
+  aceptar solo ese origen. Sin esa variable se acepta cualquiera.
+- El límite de cuerpo de una función de Vercel es de 4.5 MB, menor que los 10 MB
+  que acepta el formulario. Los PDF más grandes fallarán en producción.
+
 ---
 
 ## Estructura del proyecto
@@ -124,6 +149,7 @@ ludoteca/
 ├── supabase/
 │   └── schema.sql            Tabla, índices, RLS, buckets y get_statistics()
 ├── backend/
+│   ├── api/                  index.js (entrada serverless para Vercel)
 │   ├── controllers/          resources.controller.js · statistics.controller.js
 │   ├── routes/               index.js · resources.routes.js · statistics.routes.js
 │   ├── middleware/           upload.js (Multer) · errorHandler.js · asyncHandler.js
@@ -131,9 +157,12 @@ ludoteca/
 │   ├── database/             supabase.js (cliente con la llave secreta)
 │   ├── scripts/              check-supabase.js (diagnóstico de la conexión)
 │   ├── .env.example
-│   ├── server.js
+│   ├── app.js                Construye la app de Express (sin escuchar)
+│   ├── server.js             Arranque local: app.js + listen
+│   ├── vercel.json
 │   └── package.json
 └── frontend/
+    ├── .env.example
     ├── public/logo/          logo.svg · favicon.svg · README.md
     ├── src/
     │   ├── components/       Navbar, Footer, ResourceCard, ResourceForm, …

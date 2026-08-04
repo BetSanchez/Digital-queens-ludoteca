@@ -5,12 +5,29 @@
  * Revisa, en orden: variables de entorno, tabla `resources`, buckets de
  * Storage y la función get_statistics(). Cada fallo dice cómo arreglarlo.
  */
-import supabase, {
-  BUCKET_IMAGES,
-  BUCKET_PDF,
-  SUPABASE_URL,
-  TABLE_RESOURCES,
-} from '../database/supabase.js';
+import ConfigError from '../utils/ConfigError.js';
+
+// Import dinámico: el módulo valida las variables al cargarse y así se muestran
+// las instrucciones en lugar de un stack trace.
+let supabase;
+let BUCKET_IMAGES;
+let BUCKET_PDF;
+let SUPABASE_URL;
+let TABLE_RESOURCES;
+
+try {
+  ({
+    default: supabase,
+    BUCKET_IMAGES,
+    BUCKET_PDF,
+    SUPABASE_URL,
+    TABLE_RESOURCES,
+  } = await import('../database/supabase.js'));
+} catch (error) {
+  if (!(error instanceof ConfigError)) throw error;
+  error.imprimir();
+  process.exit(1);
+}
 
 const ok = (msg) => console.log(`  ✅ ${msg}`);
 const fail = (msg, arregla) => {

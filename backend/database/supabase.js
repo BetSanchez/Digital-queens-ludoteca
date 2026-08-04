@@ -1,14 +1,16 @@
 import { createClient } from '@supabase/supabase-js';
+import ConfigError from '../utils/ConfigError.js';
 
 const AYUDA =
   '   Abre backend/.env (cópialo de backend/.env.example) y completa:\n' +
   '     SUPABASE_URL         -> botón "Connect" del panel > Project URL\n' +
   '     SUPABASE_SECRET_KEY  -> Settings > API Keys > Secret keys\n' +
-  '                             (o la llave "service_role" si tu proyecto usa las antiguas)\n';
+  '                             (o la llave "service_role" si tu proyecto usa las antiguas)\n' +
+  '   En un hosting (Vercel, Render…) el .env no se sube: define esas dos\n' +
+  '   variables en la configuración del proyecto y vuelve a desplegar.\n';
 
 function abortar(mensaje, detalle = AYUDA) {
-  console.error(`\n❌ ${mensaje}\n${detalle}`);
-  process.exit(1);
+  throw new ConfigError(mensaje, detalle);
 }
 
 /**
