@@ -189,11 +189,20 @@ export default function Home() {
                   }
                 />
               ) : (
-                <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                  {recientes.map((recurso) => (
-                    <ResourceCard key={recurso.id} recurso={recurso} />
-                  ))}
-                </div>
+                <>
+                  <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                    {recientes.map((recurso) => (
+                      <ResourceCard key={recurso.id} recurso={recurso} />
+                    ))}
+                  </div>
+
+                  <div className="mt-8 flex justify-center">
+                    <Button to="/recursos" variant="secondary" size="lg">
+                      Ver todos
+                      <IconArrowRight className="h-5 w-5" />
+                    </Button>
+                  </div>
+                </>
               )}
             </section>
           </>

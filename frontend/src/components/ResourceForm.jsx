@@ -22,6 +22,8 @@ const VACIO = {
   recomendacion: '',
 };
 
+const CAMPOS_TEXTO = Object.keys(VACIO);
+
 const LARGOS = {
   nombre: 150,
   participante: 100,
@@ -51,9 +53,10 @@ function validar(valores, archivos) {
     }
   }
 
-  if (valores.enlace.trim()) {
+  const enlace = valores.enlace?.trim() ?? '';
+  if (enlace) {
     try {
-      const url = new URL(valores.enlace.trim());
+      const url = new URL(enlace);
       if (!['http:', 'https:'].includes(url.protocol)) throw new Error('protocolo');
     } catch {
       errores.enlace = 'El enlace debe iniciar con http:// o https://';
@@ -157,9 +160,11 @@ export default function ResourceForm({ inicial, onSubmit, enviando, errorServido
       return;
     }
 
+    // Solo los campos de texto: `archivo` e `imagen` viajan como File (o como
+    // cadena vacía si se quitan) en las líneas de abajo, nunca como su URL actual.
     const datos = new FormData();
-    for (const [campo, valor] of Object.entries(valores)) {
-      datos.set(campo, valor.trim());
+    for (const campo of CAMPOS_TEXTO) {
+      datos.set(campo, (valores[campo] ?? '').trim());
     }
     if (archivos.archivo) datos.set('archivo', archivos.archivo);
     else if (quitar.archivo) datos.set('archivo', '');
