@@ -23,6 +23,8 @@ const VACIO = {
   recomendacion: '',
 };
 
+const CAMPOS_TEXTO = Object.keys(VACIO);
+
 const LARGOS = {
   nombre: 150,
   participante: 100,
@@ -52,9 +54,10 @@ function validar(valores, archivos) {
     }
   }
 
-  if (valores.enlace.trim()) {
+  const enlace = valores.enlace?.trim() ?? '';
+  if (enlace) {
     try {
-      const url = new URL(valores.enlace.trim());
+      const url = new URL(enlace);
       if (!['http:', 'https:'].includes(url.protocol)) throw new Error('protocolo');
     } catch {
       errores.enlace = 'El enlace debe iniciar con http:// o https://';
@@ -186,13 +189,13 @@ export default function ResourceForm({ inicial, onSubmit, enviando, errorServido
       return;
     }
 
-    // Solo los campos de texto: `valores` también trae las URLs de los
-    // archivos ya guardados, que se resuelven aparte y pueden ser null.
+    // Solo los campos de texto: `valores` también trae las URLs de los archivos
+    // ya guardados, que viajan como File (o como cadena vacía si se quitan).
     const datos = new FormData();
-    for (const campo of Object.keys(VACIO)) {
-      datos.set(campo, valores[campo].trim());
+    for (const campo of CAMPOS_TEXTO) {
+      datos.set(campo, (valores[campo] ?? '').trim());
     }
-    for (const campo of ['archivo', 'archivo2', 'imagen']) {
+    for (const campo of [...PDFS, 'imagen']) {
       if (archivos[campo]) datos.set(campo, archivos[campo]);
       else if (quitar[campo]) datos.set(campo, '');
     }
