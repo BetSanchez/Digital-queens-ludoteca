@@ -9,6 +9,7 @@ import { urlArchivo } from '../utils/format';
 const MAX_MB = 10;
 const MAX_BYTES = MAX_MB * 1024 * 1024;
 const IMAGENES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+const PDFS = ['archivo', 'archivo2'];
 
 const VACIO = {
   nombre: '',
@@ -60,9 +61,11 @@ function validar(valores, archivos) {
     }
   }
 
-  if (archivos.archivo) {
-    if (archivos.archivo.type !== 'application/pdf') errores.archivo = 'Solo se permiten archivos PDF.';
-    else if (archivos.archivo.size > MAX_BYTES) errores.archivo = `El PDF supera los ${MAX_MB} MB.`;
+  for (const campo of PDFS) {
+    const pdf = archivos[campo];
+    if (!pdf) continue;
+    if (pdf.type !== 'application/pdf') errores[campo] = 'Solo se permiten archivos PDF.';
+    else if (pdf.size > MAX_BYTES) errores[campo] = `El PDF supera los ${MAX_MB} MB.`;
   }
 
   if (archivos.imagen) {
@@ -71,6 +74,32 @@ function validar(valores, archivos) {
   }
 
   return errores;
+}
+
+/** Enlace al PDF ya guardado, con la opción de quitarlo. */
+function PdfGuardado({ url, etiqueta, onQuitar }) {
+  return (
+    <div className="mt-2 flex items-center justify-between gap-3 rounded-lg bg-plum-50 px-3 py-2 text-xs">
+      <span className="flex min-w-0 items-center gap-1.5 text-muted">
+        <IconDocument className="h-3.5 w-3.5 shrink-0" />
+        <a
+          href={urlArchivo(url)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="truncate font-medium text-plum-700 hover:underline"
+        >
+          {etiqueta}
+        </a>
+      </span>
+      <button
+        type="button"
+        onClick={onQuitar}
+        className="shrink-0 font-semibold text-red-700 hover:underline"
+      >
+        Quitar
+      </button>
+    </div>
+  );
 }
 
 function Seccion({ numero, titulo, descripcion, children }) {
@@ -96,8 +125,8 @@ export default function ResourceForm({ inicial, onSubmit, enviando, errorServido
   const { tipos, categorias, idiomas } = useOptions();
 
   const [valores, setValores] = useState(() => ({ ...VACIO, ...inicial }));
-  const [archivos, setArchivos] = useState({ archivo: null, imagen: null });
-  const [quitar, setQuitar] = useState({ archivo: false, imagen: false });
+  const [archivos, setArchivos] = useState({ archivo: null, archivo2: null, imagen: null });
+  const [quitar, setQuitar] = useState({ archivo: false, archivo2: false, imagen: false });
   const [errores, setErrores] = useState({});
   const [intentado, setIntentado] = useState(false);
   const contenedorRef = useRef(null);
@@ -157,20 +186,24 @@ export default function ResourceForm({ inicial, onSubmit, enviando, errorServido
       return;
     }
 
+    // Solo los campos de texto: `valores` también trae las URLs de los
+    // archivos ya guardados, que se resuelven aparte y pueden ser null.
     const datos = new FormData();
-    for (const [campo, valor] of Object.entries(valores)) {
-      datos.set(campo, valor.trim());
+    for (const campo of Object.keys(VACIO)) {
+      datos.set(campo, valores[campo].trim());
     }
-    if (archivos.archivo) datos.set('archivo', archivos.archivo);
-    else if (quitar.archivo) datos.set('archivo', '');
-    if (archivos.imagen) datos.set('imagen', archivos.imagen);
-    else if (quitar.imagen) datos.set('imagen', '');
+    for (const campo of ['archivo', 'archivo2', 'imagen']) {
+      if (archivos[campo]) datos.set(campo, archivos[campo]);
+      else if (quitar[campo]) datos.set(campo, '');
+    }
 
     onSubmit(datos);
   };
 
-  const archivoActual = !quitar.archivo && !archivos.archivo ? inicial?.archivo : null;
-  const imagenActual = !quitar.imagen && !archivos.imagen ? inicial?.imagen : null;
+  const guardado = (campo) => (!quitar[campo] && !archivos[campo] ? inicial?.[campo] : null);
+  const archivoActual = guardado('archivo');
+  const archivo2Actual = guardado('archivo2');
+  const imagenActual = guardado('imagen');
   const hayErrores = intentado && Object.keys(errores).length > 0;
 
   return (
@@ -305,26 +338,30 @@ export default function ResourceForm({ inicial, onSubmit, enviando, errorServido
               ayuda="Guía, resumen o material descargable."
             />
             {archivoActual && (
-              <div className="mt-2 flex items-center justify-between gap-3 rounded-lg bg-plum-50 px-3 py-2 text-xs">
-                <span className="flex min-w-0 items-center gap-1.5 text-muted">
-                  <IconDocument className="h-3.5 w-3.5 shrink-0" />
-                  <a
-                    href={urlArchivo(archivoActual)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="truncate font-medium text-plum-700 hover:underline"
-                  >
-                    PDF actual
-                  </a>
-                </span>
-                <button
-                  type="button"
-                  onClick={limpiarArchivo('archivo')}
-                  className="shrink-0 font-semibold text-red-700 hover:underline"
-                >
-                  Quitar
-                </button>
-              </div>
+              <PdfGuardado
+                url={archivoActual}
+                etiqueta="PDF actual"
+                onQuitar={limpiarArchivo('archivo')}
+              />
+            )}
+          </div>
+
+          <div>
+            <FileField
+              label="Segundo archivo PDF"
+              accept="application/pdf,.pdf"
+              archivo={archivos.archivo2}
+              onChange={cambiarArchivo('archivo2')}
+              onClear={limpiarArchivo('archivo2')}
+              error={errores.archivo2}
+              ayuda="Otro documento de apoyo, si lo necesitas."
+            />
+            {archivo2Actual && (
+              <PdfGuardado
+                url={archivo2Actual}
+                etiqueta="Segundo PDF actual"
+                onQuitar={limpiarArchivo('archivo2')}
+              />
             )}
           </div>
 

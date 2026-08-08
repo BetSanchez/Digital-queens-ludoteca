@@ -222,7 +222,7 @@ Todos los errores devuelven JSON. Las validaciones incluyen el detalle por campo
 
 ### Carga de archivos
 
-- Campo `archivo`: solo PDF → bucket `recursos-pdf`
+- Campos `archivo` y `archivo2`: solo PDF → bucket `recursos-pdf`
 - Campo `imagen`: JPG, PNG, WEBP o GIF → bucket `recursos-imagenes`
 - Tamaño máximo: **10 MB** por archivo (validado en Multer y en el bucket)
 - Multer mantiene el archivo en memoria y solo lo sube cuando la validación pasa,
@@ -246,11 +246,15 @@ Definida en `supabase/schema.sql`. Una sola tabla, `resources`:
 | `idioma` | text | Opcional |
 | `enlace` | text | Opcional, debe ser `http(s)://` |
 | `archivo` | text | URL del PDF en Storage, opcional |
+| `archivo2` | text | URL del segundo PDF en Storage, opcional |
 | `imagen` | text | URL de la portada en Storage, opcional |
 | `descubrimiento` | text | Obligatorio — ¿cómo lo descubriste? |
 | `contribucion` | text | Obligatorio — ¿cómo contribuyó a tu desarrollo? |
 | `recomendacion` | text | Obligatorio — ¿por qué lo recomendarías? |
 | `fecha` | timestamptz | `now()` al crear |
+
+Si la base ya estaba creada, los cambios posteriores al esquema inicial están en
+`supabase/migrations/`: ejecútalos en el SQL Editor en orden de nombre.
 
 Hay índices sobre `categoria`, `tipo`, `participante` y `fecha` para que los filtros
 y las estadísticas no recorran la tabla completa, más dos índices GIN (`pg_trgm`)

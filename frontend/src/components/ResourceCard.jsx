@@ -4,8 +4,9 @@ import { IconArrowRight, IconCalendar, IconDocument, IconLink, IconUser } from '
 import { formatFechaCorta, iniciales, urlArchivo } from '../utils/format';
 
 export default function ResourceCard({ recurso }) {
-  const { id, nombre, participante, tipo, categoria, imagen, archivo, enlace, fecha } = recurso;
+  const { id, nombre, participante, tipo, categoria, imagen, archivo, archivo2, enlace, fecha } = recurso;
   const portada = urlArchivo(imagen);
+  const tienePdf = Boolean(archivo || archivo2);
 
   return (
     <article className="card group flex h-full flex-col overflow-hidden transition duration-200 hover:-translate-y-0.5 hover:shadow-card-hover">
@@ -30,9 +31,9 @@ export default function ResourceCard({ recurso }) {
           </Badge>
         </div>
 
-        {(archivo || enlace) && (
+        {(tienePdf || enlace) && (
           <div className="absolute right-3 top-3 flex gap-1.5">
-            {archivo && (
+            {tienePdf && (
               <span
                 className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/95 text-plum-700 shadow-sm"
                 title="Incluye PDF"

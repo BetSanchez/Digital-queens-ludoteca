@@ -6,8 +6,12 @@ import ApiError from './ApiError.js';
 /** El campo del formulario define en qué bucket termina el archivo. */
 const BUCKET_POR_CAMPO = {
   archivo: BUCKET_PDF,
+  archivo2: BUCKET_PDF,
   imagen: BUCKET_IMAGES,
 };
+
+/** Campos de archivo que acepta un recurso, en el orden en que se suben. */
+export const CAMPOS_ARCHIVO = ['archivo', 'archivo2', 'imagen'];
 
 const PUBLIC_URL_MARKER = '/storage/v1/object/public/';
 
@@ -50,23 +54,24 @@ async function subirArchivo(file) {
 
 /**
  * Sube los archivos de una petición y devuelve sus URLs públicas.
- * Si el segundo archivo falla, borra el primero para no dejar basura.
+ * Si alguno falla, borra los ya subidos para no dejar basura.
  *
- * @returns {Promise<{ archivo: string|null, imagen: string|null }>}
+ * @returns {Promise<{ archivo: string|null, archivo2: string|null, imagen: string|null }>}
  */
 export async function subirArchivosDeRecurso(files) {
-  const pdf = files?.archivo?.[0];
-  const img = files?.imagen?.[0];
-
-  const archivo = pdf ? await subirArchivo(pdf) : null;
+  const subidos = Object.fromEntries(CAMPOS_ARCHIVO.map((campo) => [campo, null]));
 
   try {
-    const imagen = img ? await subirArchivo(img) : null;
-    return { archivo, imagen };
+    for (const campo of CAMPOS_ARCHIVO) {
+      const file = files?.[campo]?.[0];
+      if (file) subidos[campo] = await subirArchivo(file);
+    }
   } catch (error) {
-    await eliminarArchivo(archivo);
+    await eliminarArchivos(...Object.values(subidos));
     throw error;
   }
+
+  return subidos;
 }
 
 /** Extrae bucket y ruta de una URL pública de Supabase Storage. */

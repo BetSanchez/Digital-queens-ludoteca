@@ -10,9 +10,13 @@ export const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 function fileFilter(req, file, cb) {
   const ext = path.extname(file.originalname).toLowerCase();
 
-  if (file.fieldname === 'archivo') {
+  if (file.fieldname === 'archivo' || file.fieldname === 'archivo2') {
     if (file.mimetype === 'application/pdf' && ext === '.pdf') return cb(null, true);
-    return cb(ApiError.badRequest('Archivo no válido.', { archivo: 'Solo se permiten archivos PDF.' }));
+    return cb(
+      ApiError.badRequest('Archivo no válido.', {
+        [file.fieldname]: 'Solo se permiten archivos PDF.',
+      }),
+    );
   }
 
   if (file.fieldname === 'imagen') {
@@ -32,10 +36,11 @@ function fileFilter(req, file, cb) {
 const upload = multer({
   storage: multer.memoryStorage(),
   fileFilter,
-  limits: { fileSize: MAX_FILE_SIZE, files: 2, fields: 25 },
+  limits: { fileSize: MAX_FILE_SIZE, files: 3, fields: 25 },
 });
 
 export const uploadResourceFiles = upload.fields([
   { name: 'archivo', maxCount: 1 },
+  { name: 'archivo2', maxCount: 1 },
   { name: 'imagen', maxCount: 1 },
 ]);

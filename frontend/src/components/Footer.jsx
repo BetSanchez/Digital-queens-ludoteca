@@ -26,7 +26,7 @@ export default function Footer() {
         <div>
           <h3 className="text-sm font-bold uppercase tracking-wider text-white">Sobre la ludoteca</h3>
           <p className="mt-3 text-sm leading-relaxed text-plum-200/80">
-            Todo el contenido es aportado por la comunidad. Los archivos se almacenan localmente y
+            Todo el contenido es aportado por la comunidad. Los archivos se almacenan y
             no se requiere iniciar sesión para consultar o compartir.
           </p>
         </div>

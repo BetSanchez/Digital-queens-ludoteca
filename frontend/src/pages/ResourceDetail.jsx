@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { Fragment, useCallback } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import Badge from '../components/Badge';
 import Button from '../components/Button';
@@ -16,7 +16,7 @@ import {
 } from '../components/Icons';
 import useFetch from '../hooks/useFetch';
 import { getResource } from '../services/api';
-import { formatFecha, iniciales, urlArchivo } from '../utils/format';
+import { formatFecha, iniciales, urlArchivo, urlDescarga } from '../utils/format';
 
 const PREGUNTAS = [
   {
@@ -59,7 +59,17 @@ export default function ResourceDetail() {
   }
 
   const portada = urlArchivo(recurso.imagen);
-  const pdf = urlArchivo(recurso.archivo);
+
+  // Con un solo documento sobra numerarlo.
+  const urlsPdf = [recurso.archivo, recurso.archivo2].map(urlArchivo).filter(Boolean);
+  const pdfs = urlsPdf.map((url, indice) => {
+    const numero = urlsPdf.length > 1 ? `-${indice + 1}` : '';
+    return {
+      url,
+      descarga: urlDescarga(url, `${recurso.nombre}${numero}`),
+      etiqueta: urlsPdf.length > 1 ? `PDF ${indice + 1}` : 'PDF',
+    };
+  });
 
   return (
     <article className="container-page py-8">
@@ -151,17 +161,19 @@ export default function ResourceDetail() {
                 </p>
               )}
 
-              {pdf ? (
-                <>
-                  <Button href={pdf} target="_blank" rel="noopener noreferrer" variant="secondary" full>
-                    <IconDocument className="h-4 w-4" />
-                    Visualizar PDF
-                  </Button>
-                  <Button href={pdf} download variant="ghost" full>
-                    <IconDownload className="h-4 w-4" />
-                    Descargar PDF
-                  </Button>
-                </>
+              {pdfs.length ? (
+                pdfs.map(({ url, descarga, etiqueta }) => (
+                  <Fragment key={url}>
+                    <Button href={url} target="_blank" rel="noopener noreferrer" variant="secondary" full>
+                      <IconDocument className="h-4 w-4" />
+                      Visualizar {etiqueta}
+                    </Button>
+                    <Button href={descarga} variant="ghost" full>
+                      <IconDownload className="h-4 w-4" />
+                      Descargar {etiqueta}
+                    </Button>
+                  </Fragment>
+                ))
               ) : (
                 <p className="rounded-xl bg-plum-50 px-3.5 py-3 text-sm text-muted">
                   Este recurso no incluye un archivo PDF.

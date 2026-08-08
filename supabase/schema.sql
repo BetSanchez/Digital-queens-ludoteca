@@ -26,6 +26,7 @@ create table if not exists public.resources (
   idioma         text,
   enlace         text,
   archivo        text,
+  archivo2       text,
   imagen         text,
   descubrimiento text        not null,
   contribucion   text        not null,
@@ -33,10 +34,16 @@ create table if not exists public.resources (
   fecha          timestamptz not null default now()
 );
 
+-- `create table if not exists` no toca las tablas ya creadas: las columnas
+-- añadidas después de la primera instalación se agregan aquí.
+alter table public.resources
+  add column if not exists archivo2 text;
+
 comment on table  public.resources                is 'Recursos de aprendizaje compartidos por las participantes.';
 comment on column public.resources.participante   is 'Nombre de la participante que comparte el recurso.';
 comment on column public.resources.enlace         is 'URL externa al recurso (opcional).';
 comment on column public.resources.archivo        is 'URL pública del PDF en Supabase Storage (opcional).';
+comment on column public.resources.archivo2       is 'URL pública del segundo PDF en Supabase Storage (opcional).';
 comment on column public.resources.imagen         is 'URL pública de la imagen de portada en Supabase Storage (opcional).';
 comment on column public.resources.descubrimiento is 'Cómo descubrió el recurso la participante.';
 comment on column public.resources.contribucion   is 'Cómo contribuyó el recurso a su desarrollo.';

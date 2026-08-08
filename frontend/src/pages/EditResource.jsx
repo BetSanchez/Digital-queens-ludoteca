@@ -31,6 +31,7 @@ export default function EditResource() {
         contribucion: recurso.contribucion ?? '',
         recomendacion: recurso.recomendacion ?? '',
         archivo: recurso.archivo,
+        archivo2: recurso.archivo2,
         imagen: recurso.imagen,
       },
     [recurso],

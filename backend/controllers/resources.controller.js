@@ -1,6 +1,6 @@
 import supabase, { TABLE_RESOURCES } from '../database/supabase.js';
 import ApiError from '../utils/ApiError.js';
-import { eliminarArchivos, subirArchivosDeRecurso } from '../utils/storage.js';
+import { CAMPOS_ARCHIVO, eliminarArchivos, subirArchivosDeRecurso } from '../utils/storage.js';
 import { parseId, validateResource } from '../utils/validation.js';
 
 const SORTABLE = new Set(['fecha', 'nombre']);
@@ -13,6 +13,7 @@ const CAMPOS = [
   'idioma',
   'enlace',
   'archivo',
+  'archivo2',
   'imagen',
   'descubrimiento',
   'contribucion',
@@ -92,16 +93,16 @@ export async function createResource(req, res) {
     throw ApiError.badRequest('Revisa los campos marcados.', errors);
   }
 
-  const { archivo, imagen } = await subirArchivosDeRecurso(req.files);
+  const subidos = await subirArchivosDeRecurso(req.files);
 
   // `fecha` la pone Postgres con su valor por omisión (now()).
   const { data: creado, error } = await tabla()
-    .insert({ ...data, archivo, imagen })
+    .insert({ ...data, ...subidos })
     .select()
     .single();
 
   if (error) {
-    await eliminarArchivos(archivo, imagen);
+    await eliminarArchivos(...Object.values(subidos));
     verificar(error, 'guardar el recurso');
   }
 
@@ -121,17 +122,16 @@ export async function updateResource(req, res) {
     throw ApiError.badRequest('Revisa los campos marcados.', errors);
   }
 
-  const { archivo: nuevoArchivo, imagen: nuevaImagen } = await subirArchivosDeRecurso(req.files);
+  const subidos = await subirArchivosDeRecurso(req.files);
 
-  // Permite quitar un archivo existente enviando el campo con valor vacío.
-  const quitarArchivo = req.body.archivo === '' && !nuevoArchivo;
-  const quitarImagen = req.body.imagen === '' && !nuevaImagen;
+  // Sin archivo nuevo se conserva el actual, salvo que el campo llegue vacío:
+  // así el formulario puede quitar un archivo ya guardado.
+  const resolver = (campo) => subidos[campo] ?? (req.body[campo] === '' ? null : current[campo]);
 
   const merged = {
     ...current,
     ...data,
-    archivo: nuevoArchivo ?? (quitarArchivo ? null : current.archivo),
-    imagen: nuevaImagen ?? (quitarImagen ? null : current.imagen),
+    ...Object.fromEntries(CAMPOS_ARCHIVO.map((campo) => [campo, resolver(campo)])),
   };
 
   const payload = Object.fromEntries(CAMPOS.map((campo) => [campo, merged[campo]]));
@@ -139,14 +139,14 @@ export async function updateResource(req, res) {
   const { data: actualizado, error } = await tabla().update(payload).eq('id', id).select().single();
 
   if (error) {
-    await eliminarArchivos(nuevoArchivo, nuevaImagen);
+    await eliminarArchivos(...Object.values(subidos));
     verificar(error, 'actualizar el recurso');
   }
 
   // Los archivos reemplazados o quitados ya no le sirven a nadie.
-  const huerfanos = [];
-  if (current.archivo && current.archivo !== merged.archivo) huerfanos.push(current.archivo);
-  if (current.imagen && current.imagen !== merged.imagen) huerfanos.push(current.imagen);
+  const huerfanos = CAMPOS_ARCHIVO.filter(
+    (campo) => current[campo] && current[campo] !== merged[campo],
+  ).map((campo) => current[campo]);
   await eliminarArchivos(...huerfanos);
 
   res.json(actualizado);
@@ -163,7 +163,7 @@ export async function deleteResource(req, res) {
   const { error } = await tabla().delete().eq('id', id);
   verificar(error, 'eliminar el recurso');
 
-  await eliminarArchivos(current.archivo, current.imagen);
+  await eliminarArchivos(...CAMPOS_ARCHIVO.map((campo) => current[campo]));
 
   res.json({ message: 'Recurso eliminado correctamente.', id });
 }
